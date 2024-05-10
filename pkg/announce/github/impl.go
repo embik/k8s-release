@@ -36,17 +36,17 @@ type defaultImpl struct{}
 //go:generate /usr/bin/env bash -c "cat ../../../hack/boilerplate/boilerplate.generatego.txt githubfakes/fake_impl.go > githubfakes/_fake_impl.go && mv githubfakes/_fake_impl.go githubfakes/fake_impl.go"
 
 type impl interface {
-	github() *githubsdk.GitHub
-	processAssetFiles(assetFiles []string) (releaseAssets []map[string]string, err error)
+	Github() *githubsdk.GitHub
+	ProcessAssetFiles(assetFiles []string) (releaseAssets []map[string]string, err error)
 }
 
-func (i *defaultImpl) github() *githubsdk.GitHub {
+func (i *defaultImpl) Github() *githubsdk.GitHub {
 	return githubsdk.New()
 }
 
-// processAssetFiles reads the command line strings and returns
+// ProcessAssetFiles reads the command line strings and returns
 // a map holding the needed info from the asset files
-func (i *defaultImpl) processAssetFiles(assetFiles []string) (releaseAssets []map[string]string, err error) {
+func (i *defaultImpl) ProcessAssetFiles(assetFiles []string) (releaseAssets []map[string]string, err error) {
 	// Check all asset files and get their hashes
 	for _, path := range assetFiles {
 		assetData := map[string]string{

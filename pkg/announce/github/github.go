@@ -56,7 +56,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 		return errors.New("cannot update release page without a GitHub token")
 	}
 
-	gh := g.impl.github()
+	gh := g.impl.Github()
 	releaseVerb := "Posting"
 	semver, err := util.TagStringToSemver(g.options.tag)
 	if err != nil {
@@ -71,7 +71,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	}
 
 	// Process the specified assets
-	releaseAssets, err := g.impl.processAssetFiles(g.options.assetFiles)
+	releaseAssets, err := g.impl.ProcessAssetFiles(g.options.assetFiles)
 	if err != nil {
 		return fmt.Errorf("processing the asset file list: %w", err)
 	}

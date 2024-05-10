@@ -24,7 +24,7 @@ import (
 )
 
 type FakeImpl struct {
-	githubStub        func() *githuba.GitHub
+	GithubStub        func() *githuba.GitHub
 	githubMutex       sync.RWMutex
 	githubArgsForCall []struct {
 	}
@@ -34,7 +34,7 @@ type FakeImpl struct {
 	githubReturnsOnCall map[int]struct {
 		result1 *githuba.GitHub
 	}
-	processAssetFilesStub        func([]string) ([]map[string]string, error)
+	ProcessAssetFilesStub        func([]string) ([]map[string]string, error)
 	processAssetFilesMutex       sync.RWMutex
 	processAssetFilesArgsForCall []struct {
 		arg1 []string
@@ -51,14 +51,14 @@ type FakeImpl struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeImpl) github() *githuba.GitHub {
+func (fake *FakeImpl) Github() *githuba.GitHub {
 	fake.githubMutex.Lock()
 	ret, specificReturn := fake.githubReturnsOnCall[len(fake.githubArgsForCall)]
 	fake.githubArgsForCall = append(fake.githubArgsForCall, struct {
 	}{})
-	stub := fake.githubStub
+	stub := fake.GithubStub
 	fakeReturns := fake.githubReturns
-	fake.recordInvocation("github", []interface{}{})
+	fake.recordInvocation("Github", []interface{}{})
 	fake.githubMutex.Unlock()
 	if stub != nil {
 		return stub()
@@ -78,13 +78,13 @@ func (fake *FakeImpl) GithubCallCount() int {
 func (fake *FakeImpl) GithubCalls(stub func() *githuba.GitHub) {
 	fake.githubMutex.Lock()
 	defer fake.githubMutex.Unlock()
-	fake.githubStub = stub
+	fake.GithubStub = stub
 }
 
 func (fake *FakeImpl) GithubReturns(result1 *githuba.GitHub) {
 	fake.githubMutex.Lock()
 	defer fake.githubMutex.Unlock()
-	fake.githubStub = nil
+	fake.GithubStub = nil
 	fake.githubReturns = struct {
 		result1 *githuba.GitHub
 	}{result1}
@@ -93,7 +93,7 @@ func (fake *FakeImpl) GithubReturns(result1 *githuba.GitHub) {
 func (fake *FakeImpl) GithubReturnsOnCall(i int, result1 *githuba.GitHub) {
 	fake.githubMutex.Lock()
 	defer fake.githubMutex.Unlock()
-	fake.githubStub = nil
+	fake.GithubStub = nil
 	if fake.githubReturnsOnCall == nil {
 		fake.githubReturnsOnCall = make(map[int]struct {
 			result1 *githuba.GitHub
@@ -104,7 +104,7 @@ func (fake *FakeImpl) GithubReturnsOnCall(i int, result1 *githuba.GitHub) {
 	}{result1}
 }
 
-func (fake *FakeImpl) processAssetFiles(arg1 []string) ([]map[string]string, error) {
+func (fake *FakeImpl) ProcessAssetFiles(arg1 []string) ([]map[string]string, error) {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -115,9 +115,9 @@ func (fake *FakeImpl) processAssetFiles(arg1 []string) ([]map[string]string, err
 	fake.processAssetFilesArgsForCall = append(fake.processAssetFilesArgsForCall, struct {
 		arg1 []string
 	}{arg1Copy})
-	stub := fake.processAssetFilesStub
+	stub := fake.ProcessAssetFilesStub
 	fakeReturns := fake.processAssetFilesReturns
-	fake.recordInvocation("processAssetFiles", []interface{}{arg1Copy})
+	fake.recordInvocation("ProcessAssetFiles", []interface{}{arg1Copy})
 	fake.processAssetFilesMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -137,7 +137,7 @@ func (fake *FakeImpl) ProcessAssetFilesCallCount() int {
 func (fake *FakeImpl) ProcessAssetFilesCalls(stub func([]string) ([]map[string]string, error)) {
 	fake.processAssetFilesMutex.Lock()
 	defer fake.processAssetFilesMutex.Unlock()
-	fake.processAssetFilesStub = stub
+	fake.ProcessAssetFilesStub = stub
 }
 
 func (fake *FakeImpl) ProcessAssetFilesArgsForCall(i int) []string {
@@ -150,7 +150,7 @@ func (fake *FakeImpl) ProcessAssetFilesArgsForCall(i int) []string {
 func (fake *FakeImpl) ProcessAssetFilesReturns(result1 []map[string]string, result2 error) {
 	fake.processAssetFilesMutex.Lock()
 	defer fake.processAssetFilesMutex.Unlock()
-	fake.processAssetFilesStub = nil
+	fake.ProcessAssetFilesStub = nil
 	fake.processAssetFilesReturns = struct {
 		result1 []map[string]string
 		result2 error
@@ -160,7 +160,7 @@ func (fake *FakeImpl) ProcessAssetFilesReturns(result1 []map[string]string, resu
 func (fake *FakeImpl) ProcessAssetFilesReturnsOnCall(i int, result1 []map[string]string, result2 error) {
 	fake.processAssetFilesMutex.Lock()
 	defer fake.processAssetFilesMutex.Unlock()
-	fake.processAssetFilesStub = nil
+	fake.ProcessAssetFilesStub = nil
 	if fake.processAssetFilesReturnsOnCall == nil {
 		fake.processAssetFilesReturnsOnCall = make(map[int]struct {
 			result1 []map[string]string
