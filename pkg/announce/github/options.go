@@ -29,61 +29,126 @@ import (
 
 // Options data for building the release page
 type Options struct {
-	// ReleaseType indicates if we are dealing with an alpha,
+	// releaseType indicates if we are dealing with an alpha,
 	// beta, rc or official
-	ReleaseType string
+	releaseType string
 
-	// AssetFiles is a list of paths of files to be uploaded
+	// assetFiles is a list of paths of files to be uploaded
 	// as assets of this release
-	AssetFiles []string
+	assetFiles []string
 
-	// Tag is the release the github page will be edited
-	Tag string
+	// tag is the release the github page will be edited
+	tag string
 
 	// The release can have a name
-	Name string
+	name string
 
-	// Owner GitHub organization which owns the repository
-	Owner string
+	// owner GitHub organization which owns the repository
+	owner string
 
 	// Name of the repository where we will publish the
 	// release page. The specified tag has to exist there already
-	Repo string
+	repo string
 
 	// Run the whole process in non-mocked mode. Which means that it uses
 	// production remote locations for storing artifacts and modifying git
 	// repositories.
-	NoMock bool
+	noMock bool
 
 	// Create a draft release
-	Draft bool
+	draft bool
 
 	// If the release exists, we do not overwrite the release page
 	// unless specified so.
-	UpdateIfReleaseExists bool
+	updateIfReleaseExists bool
 
 	// We can use a custom page template by spcifiying the path. The
 	// file is a go template file that renders markdown.
-	PageTemplate string
+	pageTemplate string
 
 	// File to read the release notes from
-	ReleaseNotesFile string
+	releaseNotesFile string
 
 	// We automatizally calculate most values, but more substitutions for
 	// the template can be supplied
-	Substitutions map[string]string
+	substitutions map[string]string
+}
+
+// NewOptions can be used to create a new Options instance
+func NewOptions() *Options {
+	return &Options{}
+}
+
+func (o *Options) WithReleaseType(releaseType string) *Options {
+	o.releaseType = releaseType
+	return o
+}
+
+func (o *Options) WithAssetFiles(assetFiles []string) *Options {
+	o.assetFiles = assetFiles
+	return o
+}
+
+func (o *Options) WithTag(tag string) *Options {
+	o.tag = tag
+	return o
+}
+
+func (o *Options) WithName(name string) *Options {
+	o.name = name
+	return o
+}
+
+func (o *Options) WithOwner(owner string) *Options {
+	o.owner = owner
+	return o
+}
+
+func (o *Options) WithRepo(repo string) *Options {
+	o.repo = repo
+	return o
+}
+
+func (o *Options) WithNoMock(noMock bool) *Options {
+	o.noMock = noMock
+	return o
+}
+
+func (o *Options) WithDraft(draft bool) *Options {
+	o.draft = draft
+	return o
+}
+
+func (o *Options) WithUpdateIfReleaseExists(updateIfReleaseExists bool) *Options {
+	o.updateIfReleaseExists = updateIfReleaseExists
+	return o
+}
+
+func (o *Options) WithPageTemplate(pageTemplate string) *Options {
+	o.pageTemplate = pageTemplate
+	return o
+}
+
+func (o *Options) WithReleaseNotesFile(releaseNotesFile string) *Options {
+	o.releaseNotesFile = releaseNotesFile
+	return o
+}
+
+func (o *Options) WithSubstitutions(substitutions map[string]string) *Options {
+	o.substitutions = substitutions
+	return o
 }
 
 // Validate the GitHub page options to ensure they are correct
 func (o *Options) Validate() error {
 	// TODO: Check that the tag is well formed
-	if o.Tag == "" {
+	if o.tag == "" {
 		return errors.New("cannot update github page without a tag")
 	}
-	if o.Repo == "" {
+	if o.repo == "" {
 		return errors.New("cannot update github page, repository not defined")
 	}
-	if o.Owner == "" {
+	if o.owner == "" {
 		return errors.New("cannot update github page, github organization not defined")
 	}
 
@@ -93,13 +158,13 @@ func (o *Options) Validate() error {
 // ParseSubstitutions gets a slice of strings with the substitutions
 // for the template and parses it as Substitutions in the options
 func (o *Options) ParseSubstitutions(subs []string) error {
-	o.Substitutions = map[string]string{}
+	o.substitutions = map[string]string{}
 	for _, sString := range subs {
 		p := strings.SplitN(sString, ":", 2)
 		if len(p) != 2 || p[0] == "" {
 			return errors.New("substitution value not well formed: " + sString)
 		}
-		o.Substitutions[p[0]] = p[1]
+		o.substitutions[p[0]] = p[1]
 	}
 	return nil
 }
@@ -111,8 +176,8 @@ func (o *Options) SetRepository(repoSlug string) error {
 	if err != nil {
 		return fmt.Errorf("parsing repository slug: %w", err)
 	}
-	o.Owner = org
-	o.Repo = repo
+	o.owner = org
+	o.repo = repo
 	return nil
 }
 
@@ -121,7 +186,7 @@ func (o *Options) SetRepository(repoSlug string) error {
 func (o *Options) ReadTemplate(templatePath string) error {
 	// If path is empty, no custom template will be used
 	if templatePath == "" {
-		o.PageTemplate = ""
+		o.pageTemplate = ""
 		return nil
 	}
 
@@ -131,6 +196,6 @@ func (o *Options) ReadTemplate(templatePath string) error {
 		return fmt.Errorf("reading page template text: %w", err)
 	}
 	logrus.Infof("Using custom template from %s", templatePath)
-	o.PageTemplate = string(templateData)
+	o.pageTemplate = string(templateData)
 	return nil
 }

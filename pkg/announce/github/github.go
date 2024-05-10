@@ -58,7 +58,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 
 	gh := g.impl.github()
 	releaseVerb := "Posting"
-	semver, err := util.TagStringToSemver(g.options.Tag)
+	semver, err := util.TagStringToSemver(g.options.tag)
 	if err != nil {
 		return fmt.Errorf("parsing semver from tag: %w", err)
 	}
@@ -71,7 +71,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	}
 
 	// Process the specified assets
-	releaseAssets, err := g.impl.processAssetFiles(g.options.AssetFiles)
+	releaseAssets, err := g.impl.processAssetFiles(g.options.assetFiles)
 	if err != nil {
 		return fmt.Errorf("processing the asset file list: %w", err)
 	}
@@ -81,14 +81,14 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 		Substitutions map[string]string
 		Assets        []map[string]string
 	}{
-		Substitutions: g.options.Substitutions,
+		Substitutions: g.options.substitutions,
 		Assets:        releaseAssets,
 	}
 
 	// If we have a release notes file defined and set a substitution
 	// entry for its contents
-	if g.options.ReleaseNotesFile != "" {
-		rnData, err := os.ReadFile(g.options.ReleaseNotesFile)
+	if g.options.releaseNotesFile != "" {
+		rnData, err := os.ReadFile(g.options.releaseNotesFile)
 		if err != nil {
 			return fmt.Errorf("reading release notes file: %w", err)
 		}
@@ -97,9 +97,9 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 
 	// Open the template file (if a custom)
 	templateText := ghPageBody
-	if g.options.PageTemplate != "" {
-		logrus.Debugf("Using custom page template %s", g.options.PageTemplate)
-		templateText = g.options.PageTemplate
+	if g.options.pageTemplate != "" {
+		logrus.Debugf("Using custom page template %s", g.options.pageTemplate)
+		templateText = g.options.pageTemplate
 	}
 	// Parse the template we will use to build the release page
 	tmpl, err := template.New("GitHubPage").Parse(templateText)
@@ -116,7 +116,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 
 	// If we are in mock, we write it to stdout and exit. All checks
 	// performed to the repo are skipped as the tag may not exist yet.
-	if !g.options.NoMock {
+	if !g.options.noMock {
 		logrus.Info("Mock mode, outputting the release page")
 		_, err := os.Stdout.Write(output.Bytes())
 		if err != nil {
@@ -129,12 +129,12 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	// non-draft release posts to github create a tag.  We don't want to
 	// create any tags on the repo this way. The tag should already exist
 	// as a result of the release process.
-	tagFound, err := gh.TagExists(g.options.Owner, g.options.Repo, g.options.Tag)
+	tagFound, err := gh.TagExists(g.options.owner, g.options.repo, g.options.tag)
 	if err != nil {
 		return fmt.Errorf("checking if the tag already exists in GitHub: %w", err)
 	}
 	if !tagFound {
-		logrus.Warnf("The %s tag doesn't exist yet on GitHub.", g.options.Tag)
+		logrus.Warnf("The %s tag doesn't exist yet on GitHub.", g.options.tag)
 		logrus.Warnf("That can't be good.")
 		logrus.Warnf("We certainly cannot publish a release without a tag.")
 		return errors.New("tag not found while trying to publish release page")
@@ -144,7 +144,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	// if the release is a prerelease. If we don't filter them out, comparing
 	// e.g. v1.30.0-rc.0 with v1.29.4 will incorrectly determine that v1.29.4
 	// is *not* the latest (stable) release.
-	releases, err := gh.Releases(g.options.Owner, g.options.Repo, isPrerelease)
+	releases, err := gh.Releases(g.options.owner, g.options.repo, isPrerelease)
 	if err != nil {
 		return fmt.Errorf("listing the repositories releases: %w", err)
 	}
@@ -156,7 +156,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	markAsLatest := !isPrerelease
 
 	for _, release := range releases {
-		if release.GetTagName() == g.options.Tag {
+		if release.GetTagName() == g.options.tag {
 			releaseID = release.GetID()
 			commitish = release.GetTargetCommitish()
 		} else if markAsLatest {
@@ -177,29 +177,29 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	}
 
 	if releaseID != 0 {
-		logrus.Warnf("The %s is already published on github.", g.options.Tag)
-		if !g.options.UpdateIfReleaseExists {
-			return errors.New("release " + g.options.Tag + " already exists. Left intact")
+		logrus.Warnf("The %s is already published on github.", g.options.tag)
+		if !g.options.updateIfReleaseExists {
+			return errors.New("release " + g.options.tag + " already exists. Left intact")
 		}
 		logrus.Infof("Using release id %d to update existing release.", releaseID)
 		releaseVerb = "Updating"
 	}
 
 	// Post release data
-	logrus.Infof("%s the %s release on github...", releaseVerb, g.options.Tag)
+	logrus.Infof("%s the %s release on github...", releaseVerb, g.options.tag)
 
 	ghOpts := &github.UpdateReleasePageOptions{
-		Name:       &g.options.Name,
+		Name:       &g.options.name,
 		Body:       ptr.To(output.String()),
-		Draft:      &g.options.Draft,
+		Draft:      &g.options.draft,
 		Prerelease: &isPrerelease,
 		Latest:     ptr.To(markAsLatest),
 	}
 
 	// Call GitHub to set the release page
 	release, err := gh.UpdateReleasePageWithOptions(
-		g.options.Owner, g.options.Repo, releaseID,
-		g.options.Tag, commitish,
+		g.options.owner, g.options.repo, releaseID,
+		g.options.tag, commitish,
 		ghOpts,
 	)
 	if err != nil {
@@ -211,7 +211,7 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	// in the API right away , sleep 3 secs and retry 3 times.
 	for checkAttempts := 3; checkAttempts >= 0; checkAttempts-- {
 		releaseFound := false
-		releases, err = gh.Releases(g.options.Owner, g.options.Repo, true)
+		releases, err = gh.Releases(g.options.owner, g.options.repo, true)
 		if err != nil {
 			return fmt.Errorf("listing releases in repository: %w", err)
 		}
@@ -234,20 +234,20 @@ func (g *GitHub) UpdateGitHubPage() (err error) {
 	}
 
 	// Delete any assets reviously uploaded
-	if err := deleteReleaseAssets(gh, g.options.Owner, g.options.Repo, release.GetID()); err != nil {
+	if err := deleteReleaseAssets(gh, g.options.owner, g.options.repo, release.GetID()); err != nil {
 		return fmt.Errorf("deleting the existing release assets: %w", err)
 	}
 
 	// publish binary
 	for _, assetData := range releaseAssets {
 		logrus.Infof("Uploading %s as release asset", assetData["realpath"])
-		asset, err := gh.UploadReleaseAsset(g.options.Owner, g.options.Repo, release.GetID(), assetData["rawpath"])
+		asset, err := gh.UploadReleaseAsset(g.options.owner, g.options.repo, release.GetID(), assetData["rawpath"])
 		if err != nil {
 			return fmt.Errorf("uploading %s to the release: %w", assetData["realpath"], err)
 		}
 		logrus.Info("Successfully uploaded asset #", asset.GetID())
 	}
-	logrus.Infof("Release %s published on GitHub", g.options.Tag)
+	logrus.Infof("Release %s published on GitHub", g.options.tag)
 	return nil
 }
 

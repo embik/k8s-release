@@ -577,21 +577,24 @@ func (d *DefaultRelease) UpdateGitHubPage() error {
 	)
 
 	// Build the options set for the GitHub page
-	ghPageOpts := &github.Options{
-		Tag:                   d.state.versions.Prime(),
-		NoMock:                d.options.NoMock,
-		UpdateIfReleaseExists: true,
-		Name:                  "Kubernetes " + d.state.versions.Prime(),
-		Draft:                 false,
-		Owner:                 git.DefaultGithubOrg,
-		Repo:                  git.DefaultGithubRepo,
-		// PageTemplate: ,     // If we use a custom template, define it here
-		Substitutions: map[string]string{
+	ghPageOpts := github.NewOptions().
+		WithTag(d.state.versions.Prime()).
+		WithNoMock(d.options.NoMock).
+		WithUpdateIfReleaseExists(true).
+		WithName("Kubernetes " + d.state.versions.Prime()).
+		WithDraft(false).
+		WithOwner(git.DefaultGithubOrg).
+		WithRepo(git.DefaultGithubRepo).
+		WithSubstitutions(map[string]string{
 			"intro": "See [kubernetes-announce@](https://groups.google.com/forum/#!forum/kubernetes-announce). " +
 				fmt.Sprintf("Additional binary downloads are linked in the [CHANGELOG](%s).", changelogURL),
 			"changelog": changelogURL,
-		},
+		})
+
+	if err := ghPageOpts.Validate(); err != nil {
+		return fmt.Errorf("validating GitHub release page options: %w", err)
 	}
+
 	// Update the release page (or simply output it during mock)
 	if err := d.impl.UpdateGitHubPage(ghPageOpts); err != nil {
 		return fmt.Errorf("updating GitHub release page: %w", err)

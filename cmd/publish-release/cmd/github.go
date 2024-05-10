@@ -305,15 +305,14 @@ func runGithubPage(opts *githubPageCmdLineOptions) (err error) {
 	newAssets[len(assets)] = sbomStr
 
 	// Build the release page options
-	ghOpts := github.Options{
-		AssetFiles:            newAssets,
-		Tag:                   commandLineOpts.tag,
-		NoMock:                commandLineOpts.nomock,
-		UpdateIfReleaseExists: !opts.noupdate,
-		Name:                  opts.name,
-		Draft:                 opts.draft,
-		ReleaseNotesFile:      opts.ReleaseNotesFile,
-	}
+	ghOpts := github.NewOptions().
+		WithAssetFiles(newAssets).
+		WithTag(commandLineOpts.tag).
+		WithNoMock(commandLineOpts.nomock).
+		WithUpdateIfReleaseExists(!opts.noupdate).
+		WithName(opts.name).
+		WithDraft(opts.draft).
+		WithReleaseNotesFile(opts.ReleaseNotesFile)
 
 	// Assign the repository data
 	if err := ghOpts.SetRepository(opts.repo); err != nil {
@@ -336,5 +335,5 @@ func runGithubPage(opts *githubPageCmdLineOptions) (err error) {
 	}
 
 	// Run the update process
-	return github.NewGitHub(&ghOpts).UpdateGitHubPage()
+	return github.NewGitHub(ghOpts).UpdateGitHubPage()
 }
